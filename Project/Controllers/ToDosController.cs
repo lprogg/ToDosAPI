@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Project.Models;
 
 namespace Project.Controllers
@@ -53,10 +55,35 @@ namespace Project.Controllers
 
                 if (todoItem == null)
                 {
-                    return NotFound();
+                    return StatusCode(StatusCodes.Status404NotFound,
+                        new
+                        {
+                            Message = "ToDo Items not found"
+                        });
                 }
 
                 return todoItem;
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        Message = e.InnerException != null
+                            ? $"{e.Message} {e.InnerException.Message}"
+                            : e.Message
+                    });
+            }
+        }
+
+        [HttpGet]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status304NotModified)]
+        public ActionResult<IEnumerable<ToDos>> GetToDoItems()
+        {
+            try
+            {
+                return _context.ToDosItems;
             }
             catch (Exception e)
             {
