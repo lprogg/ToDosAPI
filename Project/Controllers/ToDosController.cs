@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Project.Models;
@@ -18,19 +19,19 @@ namespace Project.Controllers
         [HttpPost]
         [ProducesDefaultResponseType]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult<ToDos> PostToDo(ToDos todo)
+        public ActionResult<ToDos> PostToDo(ToDos todos)
         {
             try
             {
-                if (todo.Description == null)
+                if (todos.Description == null)
                 {
                     return BadRequest();
                 }
 
-                _context.ToDosItems.Add(todo);
+                _context.ToDosItems.Add(todos);
                 _context.SaveChanges();
 
-                return CreatedAtAction("GetToDoItem", new ToDos {Id = todo.Id}, todo);
+                return CreatedAtAction("GetToDoItem", new ToDos {Id = todos.Id}, todos);
             }
             catch (Exception e)
             {
@@ -44,29 +45,25 @@ namespace Project.Controllers
             }
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         [ProducesDefaultResponseType]
-        [ProducesResponseType(StatusCodes.Status304NotModified)]
-        public ActionResult<ToDos> GetToDoItem(int Id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<ToDos> GetToDoItem(int id)
         {
             try
             {
-                var todoItem = _context.ToDosItems.Find(Id);
+                var toDosItem = _context.ToDosItems.Find(id);
 
-                if (todoItem == null)
+                if (toDosItem == null)
                 {
-                    return StatusCode(StatusCodes.Status404NotFound,
-                        new
-                        {
-                            Message = "ToDo Items not found"
-                        });
+                    return NotFound();
                 }
 
-                return todoItem;
+                return toDosItem;
             }
             catch (Exception e)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
+                return StatusCode(StatusCodes.Status404NotFound,
                     new
                     {
                         Message = e.InnerException != null
@@ -78,7 +75,7 @@ namespace Project.Controllers
 
         [HttpGet]
         [ProducesDefaultResponseType]
-        [ProducesResponseType(StatusCodes.Status304NotModified)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<ToDos>> GetToDoItems()
         {
             try
@@ -87,7 +84,94 @@ namespace Project.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
+                return StatusCode(StatusCodes.Status404NotFound,
+                    new
+                    {
+                        Message = e.InnerException != null
+                            ? $"{e.Message} {e.InnerException.Message}"
+                            : e.Message
+                    });
+            }
+        }
+
+        [HttpPut("{id}")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult PutToDoItem(int id, ToDos todos)
+        {
+            try
+            {
+                if (id != todos.Id)
+                {
+                    return BadRequest();
+                }
+
+                _context.Entry(todos).State = EntityState.Modified;
+                _context.SaveChanges();
+
+                return CreatedAtAction("GetToDoItem", new ToDos {Id = todos.Id}, todos);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status404NotFound,
+                    new
+                    {
+                        Message = e.InnerException != null
+                            ? $"{e.Message} {e.InnerException.Message}"
+                            : e.Message
+                    });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public ActionResult<ToDos> DeleteToDoItem(int id)
+        {
+            try
+            {
+                var toDosItem = _context.ToDosItems.Find(id);
+
+                if (toDosItem == null)
+                {
+                    return NotFound();
+                }
+
+                _context.ToDosItems.Remove(toDosItem);
+                _context.SaveChanges();
+
+                return toDosItem;
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status404NotFound,
+                    new
+                    {
+                        Message = e.InnerException != null
+                            ? $"{e.Message} {e.InnerException.Message}"
+                            : e.Message
+                    });
+            }
+        }
+
+        [HttpPatch("{id}")]
+        public ActionResult PatchToDoCheck(int id, [FromBody]JsonPatchDocument<ToDos> value)
+        {
+            try
+            {
+                var toDosItem = _context.ToDosItems.Find(id);
+
+                if (toDosItem == null)
+                {
+                    return BadRequest();
+                }
+
+                value.ApplyTo(toDosItem);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status404NotFound,
                     new
                     {
                         Message = e.InnerException != null

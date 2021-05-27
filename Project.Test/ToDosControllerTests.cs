@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Project.Controllers;
 using Project.Models;
@@ -9,29 +10,38 @@ namespace Project.Test
 {
     public class ToDosControllerTests
     {
-        [Fact]
-        public async Task PostToDoWillReturnA201Created()
-        {
-            var databaseContext = await GetToDosContext();
-
-            var todosController = new ToDosController(databaseContext);
-
-            // TODO: this is how the one post test might look
-            // var postToDo = todosController.PostToDo(new ToDos() {Description = "some description"});
-            //
-            // Assert.IsType<CreatedAtActionResult>(postToDo.Result);
-        }
-
         private static async Task<ToDosContext> GetToDosContext()
         {
             var options = new DbContextOptionsBuilder<ToDosContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
-            var databaseContext = new ToDosContext(options);
-            await databaseContext.Database.EnsureCreatedAsync();
+            var toDosContext = new ToDosContext(options);
+            await toDosContext.Database.EnsureCreatedAsync();
 
-            return databaseContext;
+            return toDosContext;
+        }
+
+        [Fact]
+        public async Task PostToDosWillReturnA201Created()
+        {
+            var toDosContext = await GetToDosContext();
+
+            var toDosController = new ToDosController(toDosContext);
+
+            var postToDo = toDosController.PostToDo(new() {Description = "some description"});
+
+            Assert.IsType<CreatedAtActionResult>(postToDo.Result);
+        }
+
+        [Fact]
+        public async Task PutToDoItemWillReturnA200Created()
+        {
+            var toDosContext = await GetToDosContext();
+            var toDosController = new ToDosController(toDosContext);
+            var putToDo = toDosController.PutToDoItem(1, new ToDos(){Id = 1, Description = "some description"});
+
+            Assert.IsType<ObjectResult>(putToDo);
         }
     }
 }
