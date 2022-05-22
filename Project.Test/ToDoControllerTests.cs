@@ -10,6 +10,7 @@ namespace Project.Test
 {
     public class ToDoControllerTests
     {
+        [Fact]
         private static async Task<ToDoContext> GetToDoContext()
         {
             var options = new DbContextOptionsBuilder<ToDoContext>()

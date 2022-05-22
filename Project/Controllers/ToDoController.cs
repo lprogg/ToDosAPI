@@ -35,7 +35,7 @@ namespace Project.Controllers
 
                 return CreatedAtAction("GetItem", new ToDo {Id = todo.Id}, todo);
             }
-            catch (Exception e)
+            catch
             {
                 return _code.PostStatus();
             }
@@ -57,7 +57,7 @@ namespace Project.Controllers
 
                 return toDoItem;
             }
-            catch (Exception e)
+            catch
             {
                 return _code.Status();
             }
@@ -72,7 +72,7 @@ namespace Project.Controllers
             {
                 return _context.ToDoItems;
             }
-            catch (Exception e)
+            catch
             {
                 return _code.Status();
             }
@@ -95,7 +95,7 @@ namespace Project.Controllers
 
                 return CreatedAtAction("GetItem", new ToDo {Id = todo.Id}, todo);
             }
-            catch (Exception e)
+            catch
             {
                 return _code.Status();
             }
@@ -120,7 +120,7 @@ namespace Project.Controllers
 
                 return toDoItem;
             }
-            catch (Exception e)
+            catch
             {
                 return _code.Status();
             }
@@ -143,7 +143,7 @@ namespace Project.Controllers
                 _context.SaveChanges();
                 return new ObjectResult(toDoItem);
             }
-            catch (Exception e)
+            catch
             {
                 return _code.Status();
             }
